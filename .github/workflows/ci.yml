@@ -65,15 +65,15 @@ jobs:
         with:
           tool: just@1.58.0
 
-      - name: Clone and build pollux-polyglot-native-bridge
+      - name: Setup Pollux Core native library
         run: |
           git clone --depth 1 https://github.com/sxnnyside-project/pollux-polyglot-native-bridge.git ../pollux-polyglot-native-bridge
-          cargo build --manifest-path ../pollux-polyglot-native-bridge/Cargo.toml --release
-          if [ "${{ runner.os }}" = "macOS" ]; then
-            echo "POLLUX_FFI_PATH=$(pwd)/../pollux-polyglot-native-bridge/target/release/libpollux_ffi.dylib" >> $GITHUB_ENV
-          else
-            echo "POLLUX_FFI_PATH=$(pwd)/../pollux-polyglot-native-bridge/target/release/libpollux_ffi.so" >> $GITHUB_ENV
-          fi
+          cargo test --manifest-path ../pollux-polyglot-native-bridge/Cargo.toml --no-run
+          LIB_FILE=$(find ../pollux-polyglot-native-bridge/target -name "libpollux_ffi.*" | head -n 1)
+          mkdir -p lib
+          cp "$LIB_FILE" lib/
+          echo "POLLUX_CORE_LIB=$(pwd)/lib/$(basename "$LIB_FILE")" >> $GITHUB_ENV
+          echo "POLLUX_FFI_PATH=$(pwd)/lib/$(basename "$LIB_FILE")" >> $GITHUB_ENV
 
       - run: just install
       - run: just check

@@ -25,7 +25,7 @@ export function resolveLibraryPath(explicitPath?: string): string {
     return resolve(explicitPath);
   }
 
-  const envLib = process.env.POLLUX_CORE_LIB;
+  const envLib = process.env.POLLUX_CORE_LIB || process.env.POLLUX_FFI_PATH;
   if (envLib && existsSync(envLib)) {
     return resolve(envLib);
   }
