@@ -27,6 +27,9 @@
     "check": "biome check . && tsc --noEmit && bun test"
   },
   "author": "Sxnnyside Project <houjou.sxnnyside@sxnnysideproject.com>",
+  "publishConfig": {
+    "access": "public"
+  },
   "license": "MIT",
   "repository": {
     "type": "git",
