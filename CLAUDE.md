@@ -11,7 +11,10 @@ Always use `just` recipes when interacting with this repository:
 - `just install` - Install package dependencies with Bun
 - `just dev` - Run TypeScript compiler in watch mode
 - `just build` - Compile TypeScript to `dist/` declarations and JavaScript
-- `just test` - Run tests across Bun, Deno, and Node.js
+- `just test` - Run unified test suite across all runtimes (Bun, Deno, Node)
+- `just test-bun` - Run Bun test suite
+- `just test-deno` - Run Deno test suite
+- `just test-node` - Run Node.js test suite against built dist
 - `just typecheck` - Run `tsc --noEmit`
 - `just lint` - Run Biome linter check
 - `just format` - Run Biome formatter check

@@ -1,5 +1,5 @@
 # Pollux Polyglot JS task runner.
-# Every recipe wraps canonical Bun/Deno/Biome commands.
+# Every recipe wraps canonical runtime / tooling commands.
 
 # Bootstrap dependencies.
 install:
@@ -14,9 +14,20 @@ build:
     bun build src/index.ts --outdir dist --target node
     bun x tsc --emitDeclarationOnly
 
-# Run test suite across supported runtimes.
-test:
+# Run Bun test suite.
+test-bun:
     bun test
+
+# Run Deno test suite.
+test-deno:
+    deno test -A tests/deno.test.ts
+
+# Run Node.js test suite against built dist.
+test-node: build
+    node --test tests/node.test.mjs
+
+# Run test suite across all supported runtimes.
+test: test-bun test-deno test-node
 
 # Correctness / static type checking.
 typecheck:

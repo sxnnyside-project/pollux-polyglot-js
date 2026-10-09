@@ -13,8 +13,22 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  commits:
+    name: Conventional Commits
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.2.2
+        with:
+          fetch-depth: 0
+      - name: Validate commit messages
+        env:
+          BASE: origin/${{ github.base_ref }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+        run: scripts/check-commit-range.sh "$BASE" "$HEAD"
+
   check:
-    name: Check & Test (${{ matrix.os }})
+    name: check (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -24,24 +38,24 @@ jobs:
       run:
         shell: bash
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.2.2
 
       - name: Setup Bun
-        uses: oven-sh/setup-bun@4bc047ad259df6fc24a6c9b0f9a0cb08cf17fbe5 # v2
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
         with:
           bun-version: 1.4.0
 
       - name: Setup Deno
-        uses: denoland/setup-deno@041b854f97b325bd60e83716c7cf2360aba1cb03 # v2
+        uses: denoland/setup-deno@22d081ff2d3a40755e97629de92e3bcbfa7cf2ed # v2.0.5
         with:
           deno-version: v2.x
 
       - name: Setup Node.js
-        uses: actions/setup-node@49952e3fed74ff76b252541a547700a944fc3ec9 # v4.2.0
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 22
 
-      - name: Install Rust toolchain (for native FFI bridge build)
+      - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@7e38f4b43b4db5c8dd498af069a4f6196df1d067 # v1
         with:
           toolchain: 1.93.0
@@ -51,20 +65,15 @@ jobs:
         with:
           tool: just@1.58.0
 
-      - name: Checkout and compile pollux-polyglot-native-bridge
+      - name: Clone and build pollux-polyglot-native-bridge
         run: |
-          cargo install pollux-polyglot-native-bridge --root /tmp/pollux-native || true
-          # Alternatively build in place if cloned or available
-        continue-on-error: true
+          git clone --depth 1 https://github.com/sxnnyside-project/pollux-polyglot-native-bridge.git ../pollux-polyglot-native-bridge
+          cargo build --manifest-path ../pollux-polyglot-native-bridge/Cargo.toml --release
+          if [ "${{ runner.os }}" = "macOS" ]; then
+            echo "POLLUX_FFI_PATH=$(pwd)/../pollux-polyglot-native-bridge/target/release/libpollux_ffi.dylib" >> $GITHUB_ENV
+          else
+            echo "POLLUX_FFI_PATH=$(pwd)/../pollux-polyglot-native-bridge/target/release/libpollux_ffi.so" >> $GITHUB_ENV
+          fi
 
-      - name: Install dependencies
-        run: just install
-
-      - name: Run Quality Gate (format, lint, typecheck)
-        run: |
-          bun x biome check .
-          bun x tsc --noEmit
-
-      - name: Run Test Suite
-        run: just test
-        continue-on-error: true
+      - run: just install
+      - run: just check
