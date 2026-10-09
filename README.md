@@ -1,6 +1,6 @@
 # Pollux Polyglot JS
 
-![Version](https://img.shields.io/badge/version-0.1.0-blue)
+[![npm version](https://img.shields.io/npm/v/@sxnnyside/pollux-polyglot-js.svg)](https://www.npmjs.com/package/@sxnnyside/pollux-polyglot-js)
 ![License](https://img.shields.io/badge/License-MIT-green)
 [![CI](https://github.com/sxnnyside-project/pollux-polyglot-js/workflows/CI/badge.svg)](https://github.com/sxnnyside-project/pollux-polyglot-js/actions)
 
@@ -30,7 +30,7 @@ Pollux Polyglot JS binds your JavaScript runtime directly to the native Pollux e
 
 ### Philosophy
 
-> _"Capabilities precede execution; evaluation must remain deterministic across every runtime."_
+> *"Capabilities precede execution; evaluation must remain deterministic across every runtime."*
 
 This is a Sxnnyside Project project, part of the Sxnnyside Project's Pollux Ecosystem.
 
@@ -48,6 +48,19 @@ This is a Sxnnyside Project project, part of the Sxnnyside Project's Pollux Ecos
 
 - Bun (>= 1.2.0), Deno (>= 2.0.0), or Node.js (>= 20.0.0)
 - `libpollux_ffi` dynamic library (compiled from `pollux-polyglot-native-bridge` or set via `POLLUX_FFI_PATH`)
+
+### Package Manager
+
+```bash
+# Bun
+bun add @sxnnyside/pollux-polyglot-js
+
+# Deno
+deno add npm:@sxnnyside/pollux-polyglot-js
+
+# Node.js
+npm install @sxnnyside/pollux-polyglot-js koffi
+```
 
 ### From Source
 

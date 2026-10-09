@@ -1,0 +1,103 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  gate:
+    name: Verify Quality Gate
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.2.2
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version: 1.4.0
+
+      - name: Setup Deno
+        uses: denoland/setup-deno@22d081ff2d3a40755e97629de92e3bcbfa7cf2ed # v2.0.5
+        with:
+          deno-version: v2.x
+
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@7e38f4b43b4db5c8dd498af069a4f6196df1d067 # v1
+        with:
+          toolchain: 1.93.0
+
+      - name: Install just
+        uses: taiki-e/install-action@183e4297cca2404691e9380e1307288dced5c82a # v2.87.25
+        with:
+          tool: just@1.58.0
+
+      - name: Setup Pollux Core native library
+        run: |
+          git clone --depth 1 https://github.com/sxnnyside-project/pollux-polyglot-native-bridge.git ../pollux-polyglot-native-bridge
+          cargo test --manifest-path ../pollux-polyglot-native-bridge/Cargo.toml --no-run
+          LIB_FILE=$(find ../pollux-polyglot-native-bridge/target -name "libpollux_ffi.*" | head -n 1)
+          mkdir -p lib
+          cp "$LIB_FILE" lib/
+          echo "POLLUX_CORE_LIB=$(pwd)/lib/$(basename "$LIB_FILE")" >> $GITHUB_ENV
+          echo "POLLUX_FFI_PATH=$(pwd)/lib/$(basename "$LIB_FILE")" >> $GITHUB_ENV
+
+      - run: just install
+      - run: just check
+
+  publish:
+    name: GitHub Release & Package Registry
+    needs: gate
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.2.2
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version: 1.4.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install just
+        uses: taiki-e/install-action@183e4297cca2404691e9380e1307288dced5c82a # v2.87.25
+        with:
+          tool: just@1.58.0
+
+      - run: just install
+      - run: just build
+
+      - name: Create GitHub Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${GITHUB_REF_NAME:-v0.1.0}"
+          gh release create "$TAG" \
+            --title "$TAG" \
+            --notes-file CHANGELOG.md \
+            --verify-tag || true
+
+      - name: Publish to npm (idempotent)
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          if [ -n "$NODE_AUTH_TOKEN" ]; then
+            npm publish --access public || echo "Version already published or skipped."
+          else
+            echo "NPM_TOKEN not set; skipping automated publish."
+          fi
