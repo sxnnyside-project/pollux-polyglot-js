@@ -1,0 +1,55 @@
+{
+  "name": "@sxnnyside/pollux-polyglot-js",
+  "version": "0.1.0",
+  "description": "Deterministic Execution Authority JavaScript & TypeScript SDK, optimized for Bun, Deno, and Node.js.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "bun": "./src/index.ts",
+      "deno": "./src/index.ts",
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": ["dist", "src", "README.md", "LICENSE", "CHANGELOG.md"],
+  "scripts": {
+    "dev": "bun run src/index.ts",
+    "build": "bun build src/index.ts --outdir dist --target node && tsc --emitDeclarationOnly",
+    "test": "bun test",
+    "test:deno": "deno test -A tests/",
+    "typecheck": "tsc --noEmit",
+    "lint": "biome check .",
+    "format": "biome format --write .",
+    "format-check": "biome format .",
+    "check": "biome check . && tsc --noEmit && bun test"
+  },
+  "author": "Sxnnyside Project <houjou.sxnnyside@sxnnysideproject.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sxnnyside-project/pollux-polyglot-js.git"
+  },
+  "homepage": "https://sxnnysideproject.com",
+  "keywords": [
+    "security",
+    "authority",
+    "deterministic",
+    "execution",
+    "ffi",
+    "bun",
+    "deno",
+    "typescript"
+  ],
+  "dependencies": {
+    "koffi": "^2.10.0"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.9.4",
+    "@types/bun": "^1.2.0",
+    "@types/node": "^22.13.0",
+    "typescript": "^5.7.3"
+  }
+}

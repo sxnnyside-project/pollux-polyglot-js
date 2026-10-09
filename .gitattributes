@@ -1,0 +1,16 @@
+* text=auto eol=lf
+
+*.ts text eol=lf
+*.js text eol=lf
+*.json text eol=lf
+*.md text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.sh text eol=lf
+Justfile text eol=lf
+
+*.dylib binary
+*.so binary
+*.dll binary
+*.tar.gz binary
+*.zip binary
